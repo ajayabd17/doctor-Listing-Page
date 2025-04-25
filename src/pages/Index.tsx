@@ -37,10 +37,10 @@ const DoctorsPage = () => {
   } = useDoctorFilters({ doctors });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F6F6F7]">
       {/* Header */}
-      <header className="bg-white shadow-sm py-4 mb-6">
-        <div className="container px-4">
+      <header className="bg-[#2463EB] shadow-sm py-6 mb-6">
+        <div className="container max-w-6xl mx-auto px-4">
           <SearchBar 
             searchTerm={searchTerm}
             suggestions={suggestions}
@@ -50,10 +50,10 @@ const DoctorsPage = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container px-4 pb-10">
+      <main className="container max-w-6xl mx-auto px-4 pb-10">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar */}
-          <aside className="md:w-1/4">
+          <aside className="md:w-1/3 lg:w-1/4">
             <FilterSidebar
               allSpecialties={allSpecialties}
               selectedSpecialties={selectedSpecialties}
@@ -66,7 +66,7 @@ const DoctorsPage = () => {
           </aside>
 
           {/* Doctor List */}
-          <div className="md:w-3/4">
+          <div className="md:w-2/3 lg:w-3/4">
             {loading ? (
               <div className="text-center py-10">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-medical border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
@@ -74,7 +74,7 @@ const DoctorsPage = () => {
               </div>
             ) : (
               <div>
-                <h2 className="text-xl font-bold mb-4">
+                <h2 className="text-xl font-medium text-gray-900 mb-4">
                   {filteredDoctors.length} {filteredDoctors.length === 1 ? 'Doctor' : 'Doctors'} Found
                 </h2>
                 <DoctorList doctors={filteredDoctors} />

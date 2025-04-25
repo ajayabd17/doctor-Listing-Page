@@ -31,13 +31,15 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           value={sortBy || ''} 
           onValueChange={(value) => setSortBy(value as 'fees' | 'experience' | null)}
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="fees" id="sort-fees" data-testid="sort-fees" />
-            <Label htmlFor="sort-fees">Price: Low-High</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="experience" id="sort-experience" data-testid="sort-experience" />
-            <Label htmlFor="sort-experience">Experience - Most Experience first</Label>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="fees" id="sort-fees" data-testid="sort-fees" />
+              <Label htmlFor="sort-fees">Price: Low-High</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="experience" id="sort-experience" data-testid="sort-experience" />
+              <Label htmlFor="sort-experience">Experience - Most Experience first</Label>
+            </div>
           </div>
         </RadioGroup>
       </div>
@@ -73,13 +75,15 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
             value={consultationType || ''} 
             onValueChange={(value) => setConsultationType(value as 'video' | 'in-clinic' | null)}
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="video" id="video-consult" data-testid="filter-video-consult" />
-              <Label htmlFor="video-consult">Video Consultation</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="in-clinic" id="in-clinic" data-testid="filter-in-clinic" />
-              <Label htmlFor="in-clinic">In-Clinic Consultation</Label>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="video" id="video-consult" data-testid="filter-video-consult" />
+                <Label htmlFor="video-consult">Video Consultation</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="in-clinic" id="in-clinic" data-testid="filter-in-clinic" />
+                <Label htmlFor="in-clinic">In-Clinic Consultation</Label>
+              </div>
             </div>
           </RadioGroup>
         </div>
