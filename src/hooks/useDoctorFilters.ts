@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Doctor } from '../types/doctor';
+import { Doctor, Specialty } from '../types/doctor';
 
 type SortOption = 'fees' | 'experience';
 type ConsultationType = 'video' | 'in-clinic' | null;
@@ -18,12 +18,17 @@ export const useDoctorFilters = ({ doctors }: UseDoctorFiltersProps) => {
   const [consultationType, setConsultationType] = useState<ConsultationType>(null);
   const [sortBy, setSortBy] = useState<SortOption | null>(null);
 
+  // Helper function to extract specialty name whether it's a string or object
+  const getSpecialtyName = (specialty: string | Specialty): string => {
+    return typeof specialty === 'string' ? specialty : specialty.name;
+  };
+
   // Extract all unique specialties from doctors
   const allSpecialties = useMemo(() => {
     const specialtiesSet = new Set<string>();
     doctors.forEach(doctor => {
       doctor.specialities.forEach(specialty => {
-        specialtiesSet.add(specialty);
+        specialtiesSet.add(getSpecialtyName(specialty));
       });
     });
     return Array.from(specialtiesSet).sort();
@@ -108,7 +113,7 @@ export const useDoctorFilters = ({ doctors }: UseDoctorFiltersProps) => {
       const term = searchTerm.toLowerCase();
       result = result.filter(doctor => 
         doctor.name.toLowerCase().includes(term) ||
-        doctor.specialities.some(specialty => specialty.toLowerCase().includes(term)) ||
+        doctor.specialities.some(specialty => getSpecialtyName(specialty).toLowerCase().includes(term)) ||
         doctor.clinicName.toLowerCase().includes(term)
       );
     }
@@ -116,7 +121,11 @@ export const useDoctorFilters = ({ doctors }: UseDoctorFiltersProps) => {
     // Filter by specialties
     if (selectedSpecialties.length > 0) {
       result = result.filter(doctor => 
-        selectedSpecialties.some(specialty => doctor.specialities.includes(specialty))
+        selectedSpecialties.some(selectedSpecialty => 
+          doctor.specialities.some(doctorSpecialty => 
+            getSpecialtyName(doctorSpecialty) === selectedSpecialty
+          )
+        )
       );
     }
 
