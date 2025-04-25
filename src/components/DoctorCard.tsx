@@ -28,7 +28,9 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor }) => {
           </h3>
           
           <p className="text-gray-600 mb-2" data-testid="doctor-specialty">
-            {doctor.specialities.join(', ')}
+            {doctor.specialities.map(specialty => 
+              typeof specialty === 'string' ? specialty : specialty.name
+            ).join(', ')}
           </p>
           
           <div className="flex flex-wrap gap-y-2 gap-x-6 mb-4">
