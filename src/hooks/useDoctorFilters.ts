@@ -14,11 +14,16 @@ export const useDoctorFilters = ({ doctors }: UseDoctorFiltersProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '');
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
-  const [consultationType, setConsultationType] = useState<ConsultationType>(null);
-  const [sortBy, setSortBy] = useState<SortOption | null>(null);
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(
+    searchParams.get('specialties')?.split(',').filter(Boolean) || []
+  );
+  const [consultationType, setConsultationType] = useState<ConsultationType>(
+    (searchParams.get('mode') as ConsultationType) || null
+  );
+  const [sortBy, setSortBy] = useState<SortOption | null>(
+    (searchParams.get('sort') as SortOption) || null
+  );
 
-  // Helper function to extract specialty name whether it's a string or object
   const getSpecialtyName = (specialty: string | Specialty): string => {
     return typeof specialty === 'string' ? specialty : specialty.name;
   };
@@ -33,29 +38,6 @@ export const useDoctorFilters = ({ doctors }: UseDoctorFiltersProps) => {
     });
     return Array.from(specialtiesSet).sort();
   }, [doctors]);
-
-  // Initialize filters from URL params
-  useEffect(() => {
-    const specialtiesParam = searchParams.get('specialties');
-    if (specialtiesParam) {
-      setSelectedSpecialties(specialtiesParam.split(','));
-    }
-
-    const modeParam = searchParams.get('mode');
-    if (modeParam === 'video' || modeParam === 'in-clinic') {
-      setConsultationType(modeParam);
-    }
-
-    const sortParam = searchParams.get('sort');
-    if (sortParam === 'fees' || sortParam === 'experience') {
-      setSortBy(sortParam);
-    }
-
-    const searchParam = searchParams.get('search');
-    if (searchParam) {
-      setSearchTerm(searchParam);
-    }
-  }, [searchParams]);
 
   // Update URL params when filters change
   useEffect(() => {
@@ -77,25 +59,28 @@ export const useDoctorFilters = ({ doctors }: UseDoctorFiltersProps) => {
       newSearchParams.set('search', searchTerm);
     }
 
-    setSearchParams(newSearchParams);
+    setSearchParams(newSearchParams, { replace: true });
   }, [selectedSpecialties, consultationType, sortBy, searchTerm, setSearchParams]);
 
   // Generate search suggestions
   useEffect(() => {
     if (searchTerm.trim().length > 0) {
       const term = searchTerm.toLowerCase();
-      const doctorSuggestions = doctors
-        .filter(doctor => doctor.name.toLowerCase().includes(term))
+      const suggestions = doctors
+        .filter(doctor => 
+          doctor.name.toLowerCase().includes(term) ||
+          doctor.specialities.some(specialty => getSpecialtyName(specialty).toLowerCase().includes(term)) ||
+          doctor.clinicName.toLowerCase().includes(term)
+        )
         .map(doctor => doctor.name)
         .slice(0, 3);
       
-      setSuggestions(doctorSuggestions);
+      setSuggestions(suggestions);
     } else {
       setSuggestions([]);
     }
   }, [searchTerm, doctors]);
 
-  // Toggle specialty selection
   const toggleSpecialty = (specialty: string) => {
     setSelectedSpecialties(prev => 
       prev.includes(specialty) 
@@ -104,46 +89,40 @@ export const useDoctorFilters = ({ doctors }: UseDoctorFiltersProps) => {
     );
   };
 
-  // Apply all filters
+  // Apply all filters in combination
   const filteredDoctors = useMemo(() => {
-    let result = [...doctors];
+    return doctors.filter(doctor => {
+      // Apply search filter
+      const matchesSearch = !searchTerm || 
+        doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctor.specialities.some(specialty => 
+          getSpecialtyName(specialty).toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        doctor.clinicName.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(doctor => 
-        doctor.name.toLowerCase().includes(term) ||
-        doctor.specialities.some(specialty => getSpecialtyName(specialty).toLowerCase().includes(term)) ||
-        doctor.clinicName.toLowerCase().includes(term)
-      );
-    }
-
-    // Filter by specialties
-    if (selectedSpecialties.length > 0) {
-      result = result.filter(doctor => 
-        selectedSpecialties.some(selectedSpecialty => 
+      // Apply specialty filter
+      const matchesSpecialty = selectedSpecialties.length === 0 || 
+        selectedSpecialties.every(selectedSpecialty =>
           doctor.specialities.some(doctorSpecialty => 
             getSpecialtyName(doctorSpecialty) === selectedSpecialty
           )
-        )
-      );
-    }
+        );
 
-    // Filter by consultation type
-    if (consultationType) {
-      result = result.filter(doctor => 
-        doctor.consultationType === consultationType || doctor.consultationType === 'both'
-      );
-    }
+      // Apply consultation type filter
+      const matchesConsultationType = !consultationType || 
+        doctor.consultationType === consultationType || 
+        doctor.consultationType === 'both';
 
-    // Sort by fees or experience
-    if (sortBy === 'fees') {
-      result.sort((a, b) => a.fees - b.fees);
-    } else if (sortBy === 'experience') {
-      result.sort((a, b) => b.experience - a.experience);
-    }
-
-    return result;
+      // Return true only if ALL filters match
+      return matchesSearch && matchesSpecialty && matchesConsultationType;
+    }).sort((a, b) => {
+      if (sortBy === 'fees') {
+        return a.fees - b.fees;
+      } else if (sortBy === 'experience') {
+        return b.experience - a.experience;
+      }
+      return 0;
+    });
   }, [doctors, searchTerm, selectedSpecialties, consultationType, sortBy]);
 
   return {
